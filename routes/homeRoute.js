@@ -284,6 +284,35 @@ router.get('/:postId/comments', async (req, res) => {
     }
 });
 
+// Retrieve posts sorted by time posted or by upvotes 
+router.get('/sortedPosts', async(req, res) => {
+    const { sortBy } = req.query; 
+    let sortCriteria;
+
+    // Determin sorting criteria based on query parameter 
+    if (sortBy === 'upvotes') {
+        sortCriteria = { upvotes: -1 }; 
+    }
+    else {
+        sortCriteria = { createdAt: -1}; 
+    }
+
+    try{
+        const posts = await POST.find().sort(sortCriteria).populate('user', 'name picture'); 
+
+        // retrun the posts 
+        return res.json(posts); 
+    }
+
+    // On error 
+    catch(error) {
+        console.log(error); 
+
+        // Return the error message 
+        return res.status(500).send({error: "Internal Server Error"})
+    }
+})
+
   
 // Exporting the router object 
 module.exports = router; 

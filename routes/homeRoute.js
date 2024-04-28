@@ -25,24 +25,13 @@ const router = express.Router();
 
 // Retrieve a list of posts with timestamps, user information, and post details
 router.get('/', async (req, res) => {
+    // Using try catch block 
     try {
-      const posts = await POST.find().sort({ createdAt: -1 }).populate('user', 'name picture');
+      // Find all the posts 
+      const posts = await POST.find();
   
-      const formattedPosts = posts.map(post => {
-        return {
-          id: post._id,
-          content: post.content,
-          category: post.category,
-          imageUrl: post.imageUrl,
-          createdAt: post.createdAt,
-          user: {
-            name: post.user.name,
-            picture: post.user.picture
-          }
-        };
-      });
-  
-      res.json(formattedPosts);
+      return res.json(posts);
+      
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -248,7 +237,7 @@ router.get('/:postId/comments', async (req, res) => {
     const postId = req.params.postId;
   
     try {
-      const post = await Post.findById(postId);
+      const post = await POST.findById(postId);
   
       if (!post) {
         return res.status(404).json({ error: 'Post not found' });

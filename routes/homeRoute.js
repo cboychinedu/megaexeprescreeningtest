@@ -8,6 +8,9 @@ const path = require('path');
 const multer = require('multer'); 
 const { USERS, POST } = require('../models/validation'); 
 
+// sessions 
+let sess; 
+
 // Multer configuration for handling file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -22,6 +25,158 @@ const upload = multer({ storage: storage });
 
 // Creating the router object 
 const router = express.Router(); 
+
+// Setting the route for register route 
+router.post('/register', async(req, res) => {
+  // Searching the database to see if the user with the specified email address is 
+  // already registered on the database 
+  let newUser = await USERS.findOne({
+      "emailAddress": req.body.emailAddress
+  }); 
+
+  // If the newUser is not empty execute the block of code below 
+  if (newUser) {
+      // If the email is found on the database, execute the block of code below 
+      let errMessage = JSON.stringify({
+          "message": "User already registered on the database", 
+          "status": "error", 
+          "statusCode": 500, 
+      }); 
+
+      // Sending the json message 
+      return res.send(errMessage); 
+  }
+
+  // If the email for the user is not found, execute the block of code below 
+  else {
+      // Encrypt the password, connect to the database and save the user 
+      let salt = await bcrypt.genSalt(5); 
+      hashedPassword = await bcrypt.hash(req.body.password, salt); 
+
+      // Saving the new registered user 
+      let registeredUser = new USERS({
+          firstname: req.body.firstname, 
+          lastname: req.body.lastname, 
+          phoneNumber: req.body.phoneNumber, 
+          emailAddress: req.body.emailAddress, 
+          password: hashedPassword, 
+      })
+
+      // Saving the user on the data base 
+      try{
+          // Saving the registered results on the database 
+          let result = await registeredUser.save(); 
+
+          // Create a success message, and send it back to the client 
+          let successMessage = JSON.stringify({
+              "message": "User registered on the database", 
+              "status": "success", 
+              "statusCode": 200, 
+          }); 
+
+          // Sending back the success message 
+          return res.send(successMessage).status(200); 
+      }
+
+      // On extended error, execute the block of code below 
+      catch (error) {
+          // On generated errors, log them and save to disk 
+          // Create the error message, and send it back to the user 
+          let errorMessage = JSON.stringify({
+              "message": error.toString().trim(), 
+              "status": "error", 
+              "statusCode": 500, 
+          })
+
+          // Sending the error message 
+          return res.send(errorMessage).status(500); 
+      }
+  }
+})
+
+
+// Setting post route for the login page 
+router.post('/login', async (req, res) => {
+  try {
+      // Searching if the user is registered on the database, before logging the 
+      // the user into the system 
+      let user = await USERS.findOne({
+          emailAddress: req.body.emailAddress
+      }); 
+
+      // IF the email address specified was not found on the database 
+      if (!user) {
+          // Create the error message 
+          let errorMessage = JSON.stringify({
+              "message": "Invalid email or password.", 
+              "status": "error", 
+              "statusCode": 404,  
+          })
+
+          // Send back the error message 
+          return res.send(errorMessage).status(404); 
+
+      }
+
+      // If the email address was found on the server 
+      else {
+          // Execute the block of code below 
+          let userPassword = req.body.password; 
+          let hashedPassword = user.password;  
+
+          // Comparing the password to see if it is valid 
+          let passwordCondition = await bcrypt.compare(userPassword, hashedPassword); 
+
+          // Sending back a response if the password is validated 
+          if (passwordCondition) {
+              // Creating the user session object and place it into the request header 
+              sess = req.session; 
+              sess.emailAddress = req.body.emailAddress; 
+              sess._id = user._id; 
+              sess.isAuth = true; 
+          
+
+              // Sending the response for the successful connection 
+              let successMessage = JSON.stringify({
+                  "message": "User logged in", 
+                  "status": "success", 
+                  "statusCode": 200, 
+              })
+
+              // Sending back the success message 
+              return res.send(successMessage).status(successMessage['statusCode']); 
+          }
+
+          // If the password is not validated 
+          else {
+              // For the password not validated 
+              let errorMessage = JSON.stringify({
+                  "message": "Invalid email or password.", 
+                  "status": "error", 
+                  "statusCode": 404, 
+              })
+
+              // Sending back the error messsage 
+              return res.send(errorMessage).status(errorMessage['statusCode']); 
+          }
+      }
+
+  }
+
+  // On error 
+  catch (error) {
+      // On error connecting to the database, execute the block of code below 
+      let errorMessage = JSON.stringify({
+          "message": error.toString().trim(), 
+          "status": "error", 
+          "statusCode": 500, 
+      })
+
+      // Sending back the error message 
+      return res.send(errorMessage).status(500); 
+
+  }
+})
 
 // Retrieve a list of posts with timestamps, user information, and post details
 router.get('/', async (req, res) => {

@@ -30,13 +30,17 @@ This API allows users to create, view, edit, and delete posts. It also provides 
 - [dotenv](https://www.npmjs.com/package/dotenv): Loads environment variables from a .env file into process.env.
 
 
-## Authentication
-
-User authentication is required for certain operations, such as editing or deleting posts. Authentication is implemented using JSON Web Tokens (JWT). Users need to include a valid JWT token in the Authorization header of the request to access protected endpoints.
 
 ## Endpoints
 
-### Create a Post
+### Get Posts
+
+<img src="./Img/getPosts.png" >
+
+
+### Create Posts
+
+<img src="./Img/getPosts.png">
 Create a new post.
 
 Request Body:

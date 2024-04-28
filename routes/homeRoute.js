@@ -198,6 +198,7 @@ router.post('/:postId/comments', async (req, res) => {
       };
   
       post.comments.push(newComment);
+
       await post.save();
   
       res.status(201).json({ message: 'Comment added successfully', comment: newComment });

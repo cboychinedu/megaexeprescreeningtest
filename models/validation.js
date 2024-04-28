@@ -13,24 +13,24 @@ const usersSchema = new mongodb.Schema({
 const replySchema = new mongodb.Schema({
     content: {
       type: String,
-      required: true
+      required: false
     },
     user: {
       type: mongodb.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: false
     }
   }, { timestamps: true });
   
   const commentSchema = new mongodb.Schema({
     content: {
       type: String,
-      required: true
+      required: false
     },
     user: {
       type: mongodb.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: false
     },
     replies: [replySchema]
   }, { timestamps: true });
